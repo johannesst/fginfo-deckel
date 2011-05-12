@@ -1,0 +1,8 @@
+$def with (title,heading,form)
+$var title:$title
+$var heading:$heading
+<form name="newprodukt" method="POST"> 
+$if not form.valid: <p>Ungültige Eingabe!</p>
+$:form.render()
+<input type="submit" value="Submit" />
+</form>

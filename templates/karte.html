@@ -1,0 +1,15 @@
+$def with (title,heading,products)
+$var title:$title
+$var heading:$heading
+<table border="1" rules="cols">
+	<tr>
+		<th>Bezeichnung</th><th>Einkaufspreis</th><th>Verkaufspreis</th><th></th>
+	</tr>
+	
+	$for i in products:
+		<tr
+			id="p$i.id"><td>$i.bezeichnung</td><td>$i.einkaufspreis</td><td>$i.verkaufspreis</td><td><a
+					href="admin?mode=editprodukt&id=$i.id">Bearbeiten</a>
+		</tr>
+
+</table>
