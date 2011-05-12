@@ -1,7 +1,6 @@
 
 
-
-CREATE TABLE deckelbesitzer (
+/*CREATE TABLE deckelbesitzer (
 	id serial PRIMARY KEY,
 	nachname varchar(255) NOT NULL,
 	vorname varchar(255) NOT NULL,
@@ -11,7 +10,7 @@ CREATE TABLE deckelbesitzer (
 	einkaufspreis boolean NOT NULL,
 	kredit        float NOT NULL
 );
-
+*/
 CREATE TABLE produkte (
 	id serial PRIMARY KEY NOT NULL,
 	bezeichnung varchar(255) NOT NULL,
@@ -20,13 +19,19 @@ CREATE TABLE produkte (
 );
 
 
+
+
+CREATE TABLE einzahlungen(
+	deckelbesitzer integer references deckelbesitzer NOT NULL,
+	summe float NOT NULL,
+	time timestamp  NOT NULL
+);
 CREATE TABLE umsaetze(
 	deckelbesitzer integer references deckelbesitzer NOT NULL,
 	produkt integer references produkte NOT NULL,
 	summe float NOT NULL,
 	time  timestamp NOT NULL
 );
-
 CREATE TABLE groups(
 	id serial PRIMARY KEY,
 	name varchar(255)
@@ -34,21 +39,17 @@ CREATE TABLE groups(
 
 
 
-
-CREATE TABLE users (
-	deckelbesitzer integer references deckelbesitzer NOT NULL,
-	id integer PRIMARY KEY NULL,
+CREATE TABLE auth (
+	id serial  PRIMARY KEY,
 	login varchar(255)  NOT NULL,
-	pass varchar(255) NOT NULL,
-	UNIQUE(deckelbesitzer,login)
+	pass varchar(255) NOT NULL
 );
 
-
-
-CREATE TABLE passwd (
-	nutzer integer references users NOT NULL,
-	gruppe integer references groups NOT NULL,
-	UNIQUE(nutzer,gruppe)
+CREATE TABLE authgroups(
+	auth integer references auth NOT NULL,
+	groups integer references groups NOT NULL,
+	PRIMARY KEY (auth,groups)
 );
+
 
 

@@ -3,6 +3,9 @@
 import web
 from web import form
 
+
+db = web.database(dbn='postgres', host='localhost',db='fg_deckel', user='fginfo',pw='fginfo')
+
 def editform(mode,values):
 	if mode=='editprodukt':
 		for i in values:
@@ -21,7 +24,7 @@ def editform(mode,values):
 					form.Textbox('nachname',form.notnull,description='Nachname: ',value=i.nachname),
 					form.Textbox('vorname',form.notnull,description='Vorname: ',value=i.vorname),
 					form.Textbox('email',form.notnull,description='Email: ',value=i.email),
-					form.Textbox('adresse',form.notnull,description='Adresse: ',value=i.adresse),
+					form.Textarea('adresse',form.notnull,description='Adresse: ',value=i.adresse),
 					form.Textbox('buchungsfaktor',form.notnull,description='Rabatt: ',value=i.buchungsfaktor),
 					form.Checkbox('einkaufsdeckel',checked=i.einkaufspreis,value=True,description='Einkaufspreis: '),
 					form.Textbox('kredit',form.notnull,description='Kredit: ',value=i.kredit)
@@ -46,11 +49,22 @@ def newform(mode):
 				form.Textbox('nachname',form.notnull,description='Nachname: '),
 				form.Textbox('vorname',form.notnull,description='Vorname: '),
 				form.Textbox('email',form.notnull,description='Email: '),
-				form.Textbox('adresse',form.notnull,description='Adresse: '),
+				form.Textarea('adresse',form.notnull,description='Adresse: '),
 				form.Textbox('buchungsfaktor',form.notnull,description='Rabatt: '),
 				form.Checkbox('einkaufsdeckel',checked=False,value=True,description='Einkaufspreis: '),
 				form.Textbox('kredit',form.notnull,description='Kredit: '),
 			    )
 		return f
+
+	elif mode=='einzahlung':
+		        tmp = db.select('deckelbesitzer')
+			besitzer=[]
+			for i in tmp:
+				besitzer +=  [i.id,''+i.vorname+' '+ i.nachname],
+			f=form.Form(
+			form.Dropdown('id',besitzer,description='Deckelbesitzer: '),
+			form.Textbox('summe',form.notnull,description='Summe: ')
+			)
+			return f
 	else:
 		return None

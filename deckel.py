@@ -3,6 +3,7 @@
 import web
 from web import form
 import forms
+import time
 
 urls = (
 '/', 'main',
@@ -13,6 +14,34 @@ title = "Getränkedeckel FG Informatik"
 app = web.application(urls, globals(), autoreload=True)
 render = web.template.render('templates/', base='base')
 db = web.database(dbn='postgres', host='localhost',db='fg_deckel', user='fginfo',pw='fginfo')
+
+
+class einzahlung:
+	   
+    def GET(self):
+	    i=web.input()
+	    backlink=web.input(back='/').back
+	    if i:
+		    #return web.input()
+	    	    db.query('delete FROM einzahlungen WHERE deckelbesitzer='+i.delete+" AND time='"+i.time+"'")
+	    f=forms.newform('einzahlung')
+	    einzahlungen=db.query('SELECT * FROM deckelbesitzer AS d JOIN einzahlungen AS e ON d.id=e.deckelbesitzer')
+	    if einzahlungen ==None:
+		    einzahlungen=""
+	    return render.einzahlungen(title,"Einzahlungen",f,einzahlungen,backlink)
+
+    def POST(self):
+	    f=forms.newform('einzahlung')
+	    einzahlungen=db.query('SELECT * FROM deckelbesitzer AS d JOIN einzahlungen AS e ON d.id=e.deckelbesitzer')
+	    if einzahlungen ==None:
+		    einzahlungen=""
+	    if not f.validates():
+	    	return render.einzahlungen(title,"Einzahlungen",f,einzahlungen)
+	    else:
+		    deckelbesitzer=f['id'].value
+		    summe=float(f['summe'].value)
+		    sequence_id = db.insert('einzahlungen', deckelbesitzer=deckelbesitzer,summe=summe)
+	    	    return render.einzahlungen(title,"Einzahlungen",f,einzahlungen)
 
 class main:
     def GET(self):
@@ -43,7 +72,15 @@ class admin:
 		    return render.karte(title,"Karte",produkte)
 	    elif i.mode=='admin':
 		    return render.admin(title,"Verwaltung")
-	    return render.admin(title,"Verwaltung")
+	    elif i.mode=='einzahlung':
+	    	    f=forms.newform('einzahlung')
+	            einzahlungen=db.query('SELECT * FROM deckelbesitzer AS d JOIN einzahlungen AS e ON d.id=e.deckelbesitzer')
+	            if einzahlungen ==None:
+			einzahlungen=""
+		    backlink='/admin'
+	            return render.einzahlungen(title,"Einzahlungen",f,einzahlungen,backlink)
+	    else:
+		    return render.admin(title,"Verwaltung")
 
     def POST(self):
 	    i=web.input()
