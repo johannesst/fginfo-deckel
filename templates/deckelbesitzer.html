@@ -3,13 +3,14 @@ $var title:$title
 $var heading:$heading
 <table border="1" rules="cols">
 	<tr>
-		<th>Vorname</th><th>Nachname</th><th></th><th></th>
+		<th>Vorname</th><th>Nachname</th><th>Guthaben</th><th></th>
 	</tr>
 	
 	$for i in besitzer:
 		<tr id="p$i.id">
 			<td>$i.vorname</td>
 			<td>$i.nachname</td>
+			<td>$i.guthaben</td>
 			<td><a href="admin?mode=editdeckel&id=$i.id">Bearbeiten</a>
 
 		</tr>

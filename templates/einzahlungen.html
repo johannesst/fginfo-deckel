@@ -1,0 +1,26 @@
+$def with (title,heading,form,content,backlink)
+$var title:$title
+$var heading:$heading
+<form name="einzahlung" method="POST"> 
+$if not form.valid: <p>Ungültige Eingabe!</p>
+$:form.render()
+<input type="submit" value="Submit" />
+</form>
+<table border="1" rules="cols">
+	<tr>
+		<th>Deckelbesitzer</th>
+		<th>Eingezahlte	Summe</th>
+		<th><Datum</th>
+		<!--<th>Löschen</th>
+		-->
+	</tr>
+	$if  content:
+		$for i in content:
+			<tr id="p$i.id">
+			<td>$i.vorname $i.nachname</td>
+			<td>$i.summe</td>
+			<td>$i.time</td>
+			</tr>
+</table>
+<br>
+<a href="$backlink">Zurück</a>

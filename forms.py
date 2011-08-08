@@ -4,7 +4,9 @@ import web
 from web import form
 
 
-db = web.database(dbn='postgres', host='localhost',db='fg_deckel', user='fginfo',pw='fginfo')
+db = web.database(dbn='postgres', host='localhost',db='fginfo-deckel', user='fginfo',pw='fginfo')
+
+
 
 def editform(mode,values):
 	if mode=='editprodukt':
@@ -57,7 +59,7 @@ def newform(mode):
 		return f
 
 	elif mode=='einzahlung':
-		        tmp = db.select('deckelbesitzer')
+		        tmp = db.query('SELECT * from deckelbesitzer')
 			besitzer=[]
 			for i in tmp:
 				besitzer +=  [i.id,''+i.vorname+' '+ i.nachname],

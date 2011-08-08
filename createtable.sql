@@ -1,6 +1,6 @@
 
-
-/*CREATE TABLE deckelbesitzer (
+/*
+CREATE TABLE deckelbesitzer (
 	id serial PRIMARY KEY,
 	nachname varchar(255) NOT NULL,
 	vorname varchar(255) NOT NULL,
@@ -10,7 +10,7 @@
 	einkaufspreis boolean NOT NULL,
 	kredit        float NOT NULL
 );
-*/
+
 CREATE TABLE produkte (
 	id serial PRIMARY KEY NOT NULL,
 	bezeichnung varchar(255) NOT NULL,
@@ -50,6 +50,11 @@ CREATE TABLE authgroups(
 	groups integer references groups NOT NULL,
 	PRIMARY KEY (auth,groups)
 );
+*/
 
+CREATE TABLE guthaben(
+	deckelbesitzer integer references deckelbesitzer NOT NULL PRIMARY KEY,
+	guthaben float NOT NULL
+)
 
 

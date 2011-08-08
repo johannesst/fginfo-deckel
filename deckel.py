@@ -13,17 +13,23 @@ urls = (
 title = "Getränkedeckel FG Informatik"
 app = web.application(urls, globals(), autoreload=True)
 render = web.template.render('templates/', base='base')
-db = web.database(dbn='postgres', host='localhost',db='fg_deckel', user='fginfo',pw='fginfo')
+db = web.database(dbn='postgres', host='localhost',db='fginfo-deckel', user='fginfo',pw='fginfo')
 
 
 class einzahlung:
-	   
+   
     def GET(self):
 	    i=web.input()
 	    backlink=web.input(back='/').back
-	    if i:
+	    '''if i:
 		    #return web.input()
-	    	    db.query('delete FROM einzahlungen WHERE deckelbesitzer='+i.delete+" AND time='"+i.time+"'")
+		    with db.transaction():
+	    	            summe=db.query('select summe FROM einzahlungen WHERE deckelbesitzer='+i.delete+" AND time='"+i.time+"'")
+			    guthaben=db.query('select guthaben FROM guthaben WHERE deckelbesitzer='+i.delete)
+			    guthaben=guthaben[0].guthaben-summe[0].summe
+			    db.query('update guthaben set guthaben='+str(guthaben)+ 'WHERE  deckelbesitzer='+i.delete)
+	    	            db.query('delete FROM einzahlungen WHERE deckelbesitzer='+i.delete+" AND time='"+i.time+"'")
+	    '''
 	    f=forms.newform('einzahlung')
 	    einzahlungen=db.query('SELECT * FROM deckelbesitzer AS d JOIN einzahlungen AS e ON d.id=e.deckelbesitzer')
 	    if einzahlungen ==None:
@@ -31,21 +37,39 @@ class einzahlung:
 	    return render.einzahlungen(title,"Einzahlungen",f,einzahlungen,backlink)
 
     def POST(self):
+	    backlink='/'
 	    f=forms.newform('einzahlung')
 	    einzahlungen=db.query('SELECT * FROM deckelbesitzer AS d JOIN einzahlungen AS e ON d.id=e.deckelbesitzer')
+	    #	    return einzahlungen[0]
 	    if einzahlungen ==None:
 		    einzahlungen=""
 	    if not f.validates():
-	    	return render.einzahlungen(title,"Einzahlungen",f,einzahlungen)
+	    	return render.einzahlungen(title,"Einzahlungen",f,einzahlungen,backlink)
 	    else:
 		    deckelbesitzer=f['id'].value
 		    summe=float(f['summe'].value)
-		    sequence_id = db.insert('einzahlungen', deckelbesitzer=deckelbesitzer,summe=summe)
-	    	    return render.einzahlungen(title,"Einzahlungen",f,einzahlungen)
+		    with db.transaction():
+			    sequence_id = db.insert('einzahlungen', deckelbesitzer=deckelbesitzer,summe=summe,time="NOW()")
+			    altsumme=db.query("SELECT guthaben FROM guthaben where deckelbesitzer='"+deckelbesitzer+"'")
+			    summe=altsumme[0].guthaben+summe
+			    db.query('update guthaben set guthaben='+str(summe)+' WHERE  deckelbesitzer='+deckelbesitzer)
+	    	    return render.einzahlungen(title,"Einzahlungen",f,einzahlungen,backlink)
 
 class main:
     def GET(self):
         return render.index(title,"Der elektronische Getränkedeckel")
+
+class deckel:
+    def GET(self):
+	i = web.input(mode= 'deckel')
+	if i.mode=='kasse':
+		produkte = db.query('SELECT * from produkte')
+		f=forms.editform('editprodukt',produkte)
+		return render.kasse(title,"Getränke eintragen",i.id,produkte,f)
+
+	else:
+		besitzer = db.query('SELECT * from deckelbesitzer AS   d JOIN guthaben AS g ON g.deckelbesitzer=d.id')
+		return render.deckel(title,"Deckelbesitzer",besitzer)
 
 
 class admin:
@@ -55,7 +79,7 @@ class admin:
 	    if i.mode=='newdeckel':
 		    return render.form(title,"Neuer Deckel",f,i.mode)
 	    elif i.mode=='deckelbesitzer':
-		    besitzer = db.select('deckelbesitzer')
+		    besitzer = db.query('SELECT * from deckelbesitzer AS   d JOIN guthaben AS g ON g.deckelbesitzer=d.id')
 		    return render.deckelbesitzer(title,"Deckelbesitzer",besitzer)
 	    elif i.mode=='newprodukt':
 		    return render.form(title,"Neues Produkt",f,i.mode)
@@ -133,7 +157,9 @@ class admin:
 			    else:
 				    einkaufsdeckel=False
 			    kredit=float(f['kredit'].value)
-		            sequence_id = db.insert('deckelbesitzer',guthaben='0', nachname=nachname,vorname=vorname,email=email,adresse=adresse,buchungsfaktor=buchungsfaktor,einkaufspreis=einkaufsdeckel,kredit=kredit)
+			    with db.transaction():
+				    sequence_id = db.insert('deckelbesitzer', nachname=nachname,vorname=vorname,email=email,adresse=adresse,buchungsfaktor=buchungsfaktor,einkaufspreis=einkaufsdeckel,kredit=kredit)
+			    	    sequence_id= db.insert('guthaben',deckelbesitzer=sequence_id,guthaben='0')
 			    update_string="Neuer Deckel erfolgreich		    hinzugefügt!"
 			    heading="Deckel hinzugefügt"
 			    backlink="/admin"

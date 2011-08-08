@@ -1,0 +1,15 @@
+$def with (title,heading,besitzer)
+$var title:$title
+$var heading:$heading
+<table border="1" rules="cols">
+	<tr>
+		<th>Deckelbesitzer</th>
+	</tr>
+	
+	$for i in besitzer:
+		<tr id="p$i.id">
+			<td><a
+					href="deckel?mode=kasse&id=$i.id">$i.vorname $i.nachname</a></td>
+		</tr>
+
+</table>
