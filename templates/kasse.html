@@ -1,8 +1,39 @@
-$def with (title,heading,besitzer,produkte,form)
+$def with (title,heading,besitzer,einkaufliste)
 $var title:$title
 $var heading:$heading
+	
+<div align="left">
+	Guthaben von  $besitzer.vorname $besitzer.nachname: $besitzer.guthaben
 <form name="kasse" method="POST"> 
-$if not form.valid: <p>Ungültige Eingabe!</p>
-$:form.render()
+	<ul>
+$for i in einkaufliste:
+	$if not i[1].valid: <p>Ungültige Eingabe!</p>
+	<li>
+	$:i[1].render()
+	</li>
+	</br>
+<input type="submit" value="Submit" />
+</ul>
+</form>
+</div>
+<!--
+<table border="1" rules="cols">
+	<tr><th></th>
+		<th>Bezeichnung</th><th>Preis</th><th>Anzahl</th>
+	</tr>
+	<input 	name="besitzer" type="hidden" value=$besitzer.id>
+	for i in produkte:
+		<tr id="pi.id">
+			<input type="hidden" name="pi.id"
+			value="i.id">
+			<td></td>
+			<td>i.bezeichnung</td>
+			<td>i.verkaufspreis</td>
+			<td><input name="pi anzahl" type="text" size="4" maxlength="4">
+		</tr>
+
+</table>
 <input type="submit" value="Submit" />
 </form>
+</div>
+-->
