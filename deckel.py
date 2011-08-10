@@ -73,9 +73,6 @@ class main:
 
 class deckel:
 
-
-   
-
     def GET(self):
 	i = web.input(mode= 'deckel')
 	if i.mode=='kasse':
@@ -114,15 +111,27 @@ class deckel:
 			preise = dict(preise.items() + {'preis_'+str(i.id) : i.verkaufspreis}.items())
 	posten=[]
 	summe=0.0
+	backlink = "/deckel?mode=kasse&id="+str(besitzer['id'])
 	for i in range(1,10):
-		if float(data['anzahl_'+str(i)]) != 0.0:
-			#			t=(preise[data['id_'+str(i)]])
-			anzahl = float(data['anzahl_'+str(i)])
-			preis = preise['preis_'+str(data['id_'+str(i)])]
-			summe = (summe + (  anzahl * preis )) * buchungsfaktor
-			posten.append((data['id_'+str(i)] , anzahl, preis , anzahl * preis , summe))
-			#[float(data['anzahl_'+str(i)]),preise['preis_'+str(data['id_'+str(i)])]],
-	
+		try:
+			if int(data['anzahl_'+str(i)]) != 0:
+				if int(data['anzahl_'+str(i)]) >= 0:
+				#			t=(preise[data['id_'+str(i)]])
+					anzahl = float(data['anzahl_'+str(i)])
+					preis = preise['preis_'+str(data['id_'+str(i)])]
+					summe = (summe + (  anzahl * preis )) * buchungsfaktor
+					posten.append((data['id_'+str(i)] , anzahl, preis , anzahl * preis , summe))
+				else:
+					raise(ValueError)
+				#[float(data['anzahl_'+str(i)]),preise['preis_'+str(data['id_'+str(i)])]],
+			else:
+				pass
+			break
+		except ValueError:
+			return render.status(title,"Kasse","Ungültige Eingabe! Die Anzahl muss eine positive ganze Zahl sein.",backlink)
+
+	if summe==0.0:
+		return render.status(title,"Kasse","Ungültige Eingabe! Die Anzahl muss eine positive ganze Zahl sein.",backlink)
 	
 	test=check_guthaben(besitzer['id'],besitzer['kredit'],summe)
 	if test == True:
@@ -138,7 +147,9 @@ class deckel:
 		#sequence_id = db.
 	else:
 		return test
-	return posten
+
+	besitzer = db.query('SELECT * from deckelbesitzer AS   d JOIN guthaben AS g ON g.deckelbesitzer=d.id')
+	return render.status(title,"Kasse","Umsatz erfolgreich eingetragen!","/deckel")
 	'''
 			return db.query("WITH (SELECT * FROM deckelbesitzer) AS bJOIN (SELECT * from produkte) AS s ON b.id=s.id")[0]
 
