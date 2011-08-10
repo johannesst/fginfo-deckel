@@ -17,12 +17,15 @@ db = web.database(dbn='postgres', host='localhost',db='fginfo-deckel', user='fgi
 
 
 def check_guthaben(besitzer,kredit,summe):
-	guthaben = db.query('SELECT * FROM guthaben WHERE deckelbesitzer='+str(besitzer))
+	guthaben = db.query('SELECT * FROM guthaben WHERE deckelbesitzer='+str(besitzer))[0]
 	backlink = "/deckel?mode=kasse&id="+str(besitzer)
-	guthaben= guthaben[0]#['guthaben']
+	#if guthaben['guthaben']-summe< float(kredit):#['guthaben']
+	#	return guthaben['guthaben']-summe
+	#return render.status(title,"Kasse",str(guthaben['guthaben']-summe),backlink)
 	if guthaben['guthaben']-summe <= kredit:
 		return render.status(title,"Kasse","Nicht genug Guthaben vorhanden. Der Deckel muss erst aufgeladen werden! ",backlink)
-	return True
+	else:
+		return True
 
 class einzahlung:
    
@@ -121,13 +124,29 @@ class deckel:
 			#[float(data['anzahl_'+str(i)]),preise['preis_'+str(data['id_'+str(i)])]],
 	
 	
-	if check_guthaben(besitzer['id'],besitzer['kredit'],summe):
+	test=check_guthaben(besitzer['id'],besitzer['kredit'],summe)
+	if test == True:
+		#return test
+		#		pass
+		with db.transaction():
+			for i in posten:
+				print i[0]
+				#
+				sequence_id = db.insert('umsaetze', deckelbesitzer=besitzer['id'],produkt=i[0],anzahl=i[1],summe=i[2],time="NOW()")
+			summe=besitzer['guthaben']-summe
+			sequence_id = db.query('UPDATE guthaben SET guthaben='+str(summe)+' WHERE deckelbesitzer=' + str(besitzer['id']))
+		#sequence_id = db.
+	else:
+		return test
+	return posten
+	'''
+			return db.query("WITH (SELECT * FROM deckelbesitzer) AS bJOIN (SELECT * from produkte) AS s ON b.id=s.id")[0]
+
 	return summe
 	#[data]+preise
 
      
 
-	'''
 	#if einkaufspreis:
 	#	summe
 	#	return besitzer[0]
