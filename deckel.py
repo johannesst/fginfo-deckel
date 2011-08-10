@@ -16,6 +16,14 @@ render = web.template.render('templates/', base='base')
 db = web.database(dbn='postgres', host='localhost',db='fginfo-deckel', user='fginfo',pw='fginfo')
 
 
+def check_guthaben(besitzer,kredit,summe):
+	guthaben = db.query('SELECT * FROM guthaben WHERE deckelbesitzer='+str(besitzer))
+	backlink = "/deckel?mode=kasse&id="+str(besitzer)
+	guthaben= guthaben[0]#['guthaben']
+	if guthaben['guthaben']-summe <= kredit:
+		return render.status(title,"Kasse","Nicht genug Guthaben vorhanden. Der Deckel muss erst aufgeladen werden! ",backlink)
+	return True
+
 class einzahlung:
    
     def GET(self):
@@ -56,20 +64,79 @@ class einzahlung:
 	    	    return render.einzahlungen(title,"Einzahlungen",f,einzahlungen,backlink)
 
 class main:
+
     def GET(self):
         return render.index(title,"Der elektronische Getränkedeckel")
 
 class deckel:
+
+
+   
+
     def GET(self):
 	i = web.input(mode= 'deckel')
 	if i.mode=='kasse':
-		produkte = db.query('SELECT * from produkte')
-		f=forms.editform('editprodukt',produkte)
-		return render.kasse(title,"Getränke eintragen",i.id,produkte,f)
+		besitzer = db.query('SELECT * from deckelbesitzer AS  d JOIN guthaben AS g ON	g.deckelbesitzer=d.id WHERE d.id='+i.id)
+		ownerid = db.query('SELECT id from deckelbesitzer AS  d JOIN guthaben AS g ON	g.deckelbesitzer=d.id WHERE d.id='+i.id)
+		ownerid = ownerid[0]
+		#einkaufliste=form.Form(form.Hidden('',value="test"))
+		einkaufliste = []
+		for i in range(1,10):
+			einkaufliste += [(i,forms.kassenform(ownerid,i))]
+		#return einkaufliste[0][0]
+		return render.kasse(title,"Kasse",besitzer[0],einkaufliste)
 
 	else:
 		besitzer = db.query('SELECT * from deckelbesitzer AS   d JOIN guthaben AS g ON g.deckelbesitzer=d.id')
 		return render.deckel(title,"Deckelbesitzer",besitzer)
+
+    def POST(self):
+	data = web.input()
+	summe = 0
+	besitzer = db.query('SELECT * from deckelbesitzer AS   d JOIN guthaben AS g ON g.deckelbesitzer=d.id where d.id='+data.besitzer_1)
+	besitzer= besitzer[0]
+	preise = db.query('SELECT id,einkaufspreis,verkaufspreis FROM produkte')
+	tmp =[]
+	for i in preise:
+		tmp+=i,
+	#preise=tmp
+	#return preise[0]['id']#.pop()
+	#+ preise[0]
+	buchungsfaktor=besitzer.buchungsfaktor
+	preise  = {}
+	for i in tmp:
+		if besitzer.einkaufspreis:
+			preise = dict(preise.items() + {'preis_'+str(i.id) : i.einkaufspreis}.items())
+		else:
+			preise = dict(preise.items() + {'preis_'+str(i.id) : i.verkaufspreis}.items())
+	posten=[]
+	summe=0.0
+	for i in range(1,10):
+		if float(data['anzahl_'+str(i)]) != 0.0:
+			#			t=(preise[data['id_'+str(i)]])
+			anzahl = float(data['anzahl_'+str(i)])
+			preis = preise['preis_'+str(data['id_'+str(i)])]
+			summe = (summe + (  anzahl * preis )) * buchungsfaktor
+			posten.append((data['id_'+str(i)] , anzahl, preis , anzahl * preis , summe))
+			#[float(data['anzahl_'+str(i)]),preise['preis_'+str(data['id_'+str(i)])]],
+	
+	
+	if check_guthaben(besitzer['id'],besitzer['kredit'],summe):
+	return summe
+	#[data]+preise
+
+     
+
+	'''
+	#if einkaufspreis:
+	#	summe
+	#	return besitzer[0]
+	#	return web.input().
+	#.besitzer:
+	#	tmp+=i
+	#return tmp
+	'''
+
 
 
 class admin:

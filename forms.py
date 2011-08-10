@@ -6,7 +6,17 @@ from web import form
 
 db = web.database(dbn='postgres', host='localhost',db='fginfo-deckel', user='fginfo',pw='fginfo')
 
-
+def kassenform(besitzer,formid):
+	tmp = db.query('SELECT * from produkte')
+	produkte=[]
+	for i in tmp:
+		produkte +=  [(i.id,i.bezeichnung+' '+ str( i.verkaufspreis) + ' Euro')]
+	f= form.Form(
+			form.Hidden('besitzer_'+str(formid),value=besitzer.id),
+			form.Dropdown('id_'+str(formid),produkte,description='Produkt: '),
+			form.Textbox('anzahl_'+str(formid),form.notnull,description='Anzahl:',value='0')
+			)
+	return f
 
 def editform(mode,values):
 	if mode=='editprodukt':
@@ -62,7 +72,7 @@ def newform(mode):
 		        tmp = db.query('SELECT * from deckelbesitzer')
 			besitzer=[]
 			for i in tmp:
-				besitzer +=  [i.id,''+i.vorname+' '+ i.nachname],
+				besitzer +=  [(i.id,''+i.vorname+' '+ i.nachname)]
 			f=form.Form(
 			form.Dropdown('id',besitzer,description='Deckelbesitzer: '),
 			form.Textbox('summe',form.notnull,description='Summe: ')
