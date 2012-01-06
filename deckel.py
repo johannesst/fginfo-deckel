@@ -17,7 +17,7 @@ db = web.database(dbn='postgres', host='localhost',db='fginfo-deckel', user='fgi
 
 
 def check_guthaben(besitzer,kredit,summe):
-	guthaben = db.query('SELECT * FROM guthaben WHERE deckelbesitzer='+str(besitzer))[0]
+	guthaben = db.query('SELECT * FROM guthaben WHERE deckelbesitzer=$deckelbesitzer',vars=dict(deckelbesitzer=str(besitzer)))[0]
 	backlink = "/deckel?mode=kasse&id="+str(besitzer)
 	#if guthaben['guthaben']-summe< float(kredit):#['guthaben']
 	#	return guthaben['guthaben']-summe
@@ -32,7 +32,11 @@ class einzahlung:
     def GET(self):
 	    i=web.input()
 	    backlink=web.input(back='/').back
-	    '''if i:
+	    ''' Nur nach Umstricken nach vars benutzen, sonst SQL
+	    Injektion!
+	    Wird eigentlich eh nicht mehr gebraucht, daher
+	    auskommentiert
+	    if i:
 		    #return web.input()
 		    with db.transaction():
 	    	            summe=db.query('select summe FROM einzahlungen WHERE deckelbesitzer='+i.delete+" AND time='"+i.time+"'")
@@ -61,9 +65,9 @@ class einzahlung:
 		    summe=float(f['summe'].value)
 		    with db.transaction():
 			    sequence_id = db.insert('einzahlungen', deckelbesitzer=deckelbesitzer,summe=summe,time="NOW()")
-			    altsumme=db.query("SELECT guthaben FROM guthaben where deckelbesitzer='"+deckelbesitzer+"'")
+			    altsumme=db.query("SELECT guthaben FROM guthaben where deckelbesitzer=$deckelbesitzer'",vars=dict(deckelbesitzer=str(deckelbesitzer)))
 			    summe=altsumme[0].guthaben+summe
-			    db.query('update guthaben set guthaben='+str(summe)+' WHERE  deckelbesitzer='+deckelbesitzer)
+			    db.query('update guthaben set  guthaben=$summe WHERE   deckelbesitzer=$deckelbesitzer',vars=dict(summe=str(summe),deckelbesitzer=str(deckelbesitzer)))
 	    	    return render.einzahlungen(title,"Einzahlungen",f,einzahlungen,backlink)
 
 class main:
@@ -76,8 +80,8 @@ class deckel:
     def GET(self):
 	i = web.input(mode= 'deckel')
 	if i.mode=='kasse':
-		besitzer = db.query('SELECT * from deckelbesitzer AS  d JOIN guthaben AS g ON	g.deckelbesitzer=d.id WHERE d.id='+i.id)
-		ownerid = db.query('SELECT id from deckelbesitzer AS  d JOIN guthaben AS g ON	g.deckelbesitzer=d.id WHERE d.id='+i.id)
+		besitzer = db.query("SELECT * from deckelbesitzer AS  d	JOIN guthaben AS g ON	g.deckelbesitzer=d.id WHERE d.id=$id",vars=dict(id=str(i.id)))
+		ownerid = db.query("SELECT * from deckelbesitzer AS  d	JOIN guthaben AS g ON	g.deckelbesitzer=d.id WHERE d.id=$id",vars=dict(id=str(i.id)))
 		ownerid = ownerid[0]
 		#einkaufliste=form.Form(form.Hidden('',value="test"))
 		einkaufliste = []
@@ -93,7 +97,7 @@ class deckel:
     def POST(self):
 	data = web.input()
 	summe = 0
-	besitzer = db.query('SELECT * from deckelbesitzer AS   d JOIN guthaben AS g ON g.deckelbesitzer=d.id where d.id='+data.besitzer_1)
+	besitzer = db.query("SELECT * from deckelbesitzer AS  d	JOIN guthaben AS g ON	g.deckelbesitzer=d.id WHERE d.id=$id",vars=dict(id=str(data.besitzer_1)))
 	besitzer= besitzer[0]
 	preise = db.query('SELECT id,einkaufspreis,verkaufspreis FROM produkte')
 	tmp =[]
@@ -144,6 +148,7 @@ class deckel:
 				sequence_id = db.insert('umsaetze', deckelbesitzer=besitzer['id'],produkt=i[0],anzahl=i[1],summe=i[2],time="NOW()")
 			summe=besitzer['guthaben']-summe
 			sequence_id = db.query('UPDATE guthaben SET guthaben='+str(summe)+' WHERE deckelbesitzer=' + str(besitzer['id']))
+			sequence_id = db.query("UPDATE guthaben SET guthaben=$summe WHERE deckelbesitzer=$besitzer",vars=dict(summe=str(summe),besitzer=str(besitzer['id'])))
 		#sequence_id = db.
 	else:
 		return test
