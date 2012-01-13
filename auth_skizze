@@ -1,0 +1,10 @@
+* Mehrere Varianten möglich
+* api: 
+* isAuthed()-> bei erfolgreicher authentifizierung true sonst false
+* getAuth()->gibt nutzer, besitzer zurück
+* Funktion  bei pw:
+*                   form: login, pass
+*                         checken, werte speichern, danach zurückgeben
+* funktion bei karte: barcode einlesen, passenden login zuordnen,
+* passende daten speichern und zurückgeben
+* gibt nutzer, besitzer (nicht identisch!), true

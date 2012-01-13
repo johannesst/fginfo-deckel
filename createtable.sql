@@ -38,11 +38,12 @@ CREATE TABLE groups(
 );
 
 
-
+*/
 CREATE TABLE auth (
 	id serial  PRIMARY KEY,
-	login varchar(255)  NOT NULL,
-	pass varchar(255) NOT NULL
+	login varchar(255)  UNIQUE NOT NULL,
+	pass varchar(255) NOT NULL,
+	UNIQUE (id,login) 
 );
 
 CREATE TABLE authgroups(
@@ -50,11 +51,11 @@ CREATE TABLE authgroups(
 	groups integer references groups NOT NULL,
 	PRIMARY KEY (auth,groups)
 );
-*/
 
+/*
 CREATE TABLE guthaben(
 	deckelbesitzer integer references deckelbesitzer NOT NULL PRIMARY KEY,
 	guthaben float NOT NULL
 )
 
-
+*/

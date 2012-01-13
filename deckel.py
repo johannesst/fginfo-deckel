@@ -4,9 +4,12 @@ import web
 from web import form
 import forms
 import time
+import auth
+#import hashlib
 
 urls = (
 '/', 'main',
+'/login','login',
 '/deckel','deckel',
 '/einzahlung', 'einzahlung',
 '/admin', 'admin')
@@ -26,6 +29,19 @@ def check_guthaben(besitzer,kredit,summe):
 		return render.status(title,"Kasse","Nicht genug Guthaben vorhanden. Der Deckel muss erst aufgeladen werden! ",backlink)
 	else:
 		return True
+class login:
+    def GET(self):
+    	    a=auth.auth()
+	    f=a.authform
+	    return render.login(title,"Login",f)
+    def POST(self):
+	    a=auth.auth()
+	    data=web.input()
+	    # ausgabe+= "login " + data['login'] + "\n"
+	    #ausgabe+="pw " + data['password'] + " " + 	    hashedpw.hexdigest() + "\n"
+	    if a.authenticate(data['login'],data['password']):
+		    return "Login erfolgreich!"
+	    return "Login failt!"
 
 class einzahlung:
    
